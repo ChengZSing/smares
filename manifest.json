@@ -1,0 +1,37 @@
+{
+	"name": "Smares",
+	"version": "0.0.1",
+	"manifest_version": 2,
+	"minimum_chrome_version": "23.0.0",
+	"description": "暂无",
+	"icons": {
+		"16": "image/icon16.png",
+		"48": "image/icon48.png"
+	},
+	"browser_action": {
+		"default_title": "Smares",
+		"default_icon": "image/icon16.png",
+		"default_popup": "html/popup.html"
+	},
+	"background": {
+		"page": "html/background.html"
+	},
+	// "background": { "scripts": ["script/background.js"] },
+	"content_scripts": [{
+		"js": [
+			"script/index.js"
+		],
+		"matches": [
+			"http://*/*", 
+			"https://*/*"
+		],
+		"run_at": "document_start"
+	}],
+	"permissions": [
+		"tabs",
+		"http://*/*",
+		"https://*/*",
+		"webRequestBlocking",
+		"webRequest"
+	]
+}
