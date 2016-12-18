@@ -1,11 +1,38 @@
+var KEY_PACK_MAP = 'store.goodplan.smares.packagemap';
+var KEY_FILE_MAP = 'store.goodplan.smares.filemap';
+
+var packageMapStr = localStorage.getItem(KEY_PACK_MAP);
+var packageMap = packageMapStr ? JSON.parse(packageMapStr) : {};
+
+var fileMapStr = localStorage.getItem(KEY_FILE_MAP);
+var fileMap = fileMapStr ? JSON.parse(fileMapStr) : {};
+
 chrome.webRequest.onBeforeRequest.addListener(
 
     function(details) {
-    	var targetReg = /a.js$/;
-        if(targetReg.test(details.url)) {
-        	return {redirectUrl: 'http://localhost:8080/example/js/b.js'};
-    	}
-    	return true;
+        // var targetReg = /origin.js$/;
+        //    if(targetReg.test(details.url)) {
+        //    	return {redirectUrl: 'http://localhost:8080/example/target/target.js'};
+        // }
+        for (var key in fileMap) {
+        	if(chrome.extension.getViews()[1]) {
+        		chrome.extension.getViews()[1].output('EMP: ' + key + ' , OMP:' + details.url);
+        	}
+            if (key == details.url) {
+            	if(chrome.extension.getViews()[1]) {
+            		chrome.extension.getViews()[1].output('file matched! originUrl:' + key + ' ,targetUrl:' + fileMap[key]);
+            	}
+                return { redirectUrl: fileMap[key] };
+            }
+        }
+        for (var key in packageMap) {
+            var reg = new RegExp('^' + key, 'g');
+            if (reg.test(details.url)) {
+            	//chrome.extension.getViews()[1].output('package matched! originUrl:' + key + ' ,targetUrl:' + packageMap[key]);
+                return { redirectUrl: packageMap[key] + details.url.substring(key.length) };
+            }
+        }
+        return {};
     },
 
     {
@@ -20,6 +47,12 @@ chrome.webRequest.onBeforeRequest.addListener(
 
 );
 
+// function setMapping(originUrl, targetUrl, isPackage) {
+//     var map = isPackage ? packageMap : fileMap;
+//     map[originUrl] = targetUrl;
+// }
+
+// no use, test code
 function backgroundMethod(param) {
-	return chrome.extension.getViews()[1].frontMethod() + param;
+    return chrome.extension.getViews()[1].frontMethod() + param;
 }
