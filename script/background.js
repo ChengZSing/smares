@@ -1,11 +1,20 @@
 var KEY_PACK_MAP = 'store.goodplan.smares.packagemap';
 var KEY_FILE_MAP = 'store.goodplan.smares.filemap';
 
-var packageMapStr = localStorage.getItem(KEY_PACK_MAP);
-var packageMap = packageMapStr ? JSON.parse(packageMapStr) : {};
+var packageMap;
+var fileMap;
 
-var fileMapStr = localStorage.getItem(KEY_FILE_MAP);
-var fileMap = fileMapStr ? JSON.parse(fileMapStr) : {};
+chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
+    if (request.action == 'init') {
+        var packageMapStr = localStorage.getItem(KEY_PACK_MAP);
+        packageMap = packageMapStr ? JSON.parse(packageMapStr) : {};
+
+        var fileMapStr = localStorage.getItem(KEY_FILE_MAP);
+        fileMap = fileMapStr ? JSON.parse(fileMapStr) : {};
+
+        sendResponse({ state: 1 });
+    }
+});
 
 chrome.webRequest.onBeforeRequest.addListener(
 
@@ -14,21 +23,19 @@ chrome.webRequest.onBeforeRequest.addListener(
         //    if(targetReg.test(details.url)) {
         //    	return {redirectUrl: 'http://localhost:8080/example/target/target.js'};
         // }
+
         for (var key in fileMap) {
-        	if(chrome.extension.getViews()[1]) {
-        		chrome.extension.getViews()[1].output('EMP: ' + key + ' , OMP:' + details.url);
-        	}
             if (key == details.url) {
-            	if(chrome.extension.getViews()[1]) {
-            		chrome.extension.getViews()[1].output('file matched! originUrl:' + key + ' ,targetUrl:' + fileMap[key]);
-            	}
+                if (chrome.extension.getViews()[1]) {
+                    chrome.extension.getViews()[1].output('file matched! originUrl:' + key + ' ,targetUrl:' + fileMap[key]);
+                }
                 return { redirectUrl: fileMap[key] };
             }
         }
         for (var key in packageMap) {
             var reg = new RegExp('^' + key, 'g');
             if (reg.test(details.url)) {
-            	//chrome.extension.getViews()[1].output('package matched! originUrl:' + key + ' ,targetUrl:' + packageMap[key]);
+            	console.log(packageMap[key] + details.url.substring(key.length));
                 return { redirectUrl: packageMap[key] + details.url.substring(key.length) };
             }
         }
@@ -47,10 +54,31 @@ chrome.webRequest.onBeforeRequest.addListener(
 
 );
 
-// function setMapping(originUrl, targetUrl, isPackage) {
-//     var map = isPackage ? packageMap : fileMap;
-//     map[originUrl] = targetUrl;
-// }
+function getMapping() {
+    var packageMapStr = localStorage.getItem(KEY_PACK_MAP);
+    var fileMapStr = localStorage.getItem(KEY_FILE_MAP);
+    return {'packageMap':packageMapStr ? JSON.parse(packageMapStr) : {}, 
+			'fileMap':fileMapStr ? JSON.parse(fileMapStr) : {}};
+}
+
+function setMapping(originUrl, targetUrl, isPackage) {
+	var map, key;
+	if(isPackage) {
+		map = packageMap;
+		key = KEY_PACK_MAP;
+	} else {
+		map = fileMap;
+		key = KEY_FILE_MAP;
+	}
+    map[originUrl] = targetUrl;
+    localStorage.setItem(key, JSON.stringify(map))
+}
+
+function clearLocalStorage() {
+    localStorage.clear();
+    packageMap = {};
+    fileMap = {};
+}
 
 // no use, test code
 function backgroundMethod(param) {

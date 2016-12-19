@@ -1,11 +1,6 @@
-var KEY_PACK_MAP = 'store.goodplan.smares.packagemap';
-var KEY_FILE_MAP = 'store.goodplan.smares.filemap';
-
-var packageMapStr = localStorage.getItem(KEY_PACK_MAP);
-var packageMap = packageMapStr ? JSON.parse(packageMapStr) : {};
-
-var fileMapStr = localStorage.getItem(KEY_FILE_MAP);
-var fileMap = fileMapStr ? JSON.parse(fileMapStr) : {};
+var mapping = chrome.extension.getBackgroundPage().getMapping();
+var packageMap = mapping.packageMap;
+var fileMap = mapping.fileMap;
 
 var container = document.getElementsByClassName('url_response_container')[0];
 var ul = container.getElementsByTagName('ul')[0];
@@ -48,17 +43,12 @@ btn.addEventListener('click', function(event) {
     var dotIndexOfTarget = lastPartOfTargetUrl.indexOf('.');
 
     var backgroundPage = chrome.extension.getBackgroundPage();
-    if(dotIndexOfOrigin == -1 && dotIndexOfTarget == -1) {
-    	packageMap[originUrl] = targetUrl;
 
-    	localStorage.setItem(KEY_PACK_MAP, JSON.stringify(packageMap));
-    	//backgroundPage.setMapping(originUrl, targetUrl, true);
-    	ul.appendChild(createLiElement(originUrl, targetUrl));
-    } else if(dotIndexOfOrigin >= 0 && dotIndexOfTarget >= 0) {
-    	fileMap[originUrl] = targetUrl;
-
-    	localStorage.setItem(KEY_FILE_MAP, JSON.stringify(fileMap));
-    	//backgroundPage.setMapping(originUrl, targetUrl);
+    if((dotIndexOfOrigin == -1 && dotIndexOfTarget == -1) ||
+    	(dotIndexOfOrigin >= 0 && dotIndexOfTarget >= 0)) {
+    	backgroundPage.setMapping(originUrl, targetUrl, (dotIndexOfOrigin == -1 && dotIndexOfTarget == -1));
+    	input_arr[0].value = '';
+    	input_arr[1].value = '';
     	ul.appendChild(createLiElement(originUrl, targetUrl));
     } else {
     	console.log('error url');
@@ -67,7 +57,7 @@ btn.addEventListener('click', function(event) {
 
 var clearBtn = document.getElementById('clear');
 clearBtn.addEventListener('click', function(event) {
-	localStorage.clear();
+	chrome.extension.getBackgroundPage().clearLocalStorage();
 	ul.innerHTML = "";
 	document.getElementsByTagName('input')[0].focus();
 });
@@ -76,10 +66,6 @@ function createLiElement(originUrl, targetUrl) {
 	var li = document.createElement('li');
 	li.innerHTML = '<div><span>' + originUrl + '</span><span>' + targetUrl +'</span></div>'
 	return li;
-}
-
-function output(info) {
-	console.log(info);
 }
 
 // no use, test code
