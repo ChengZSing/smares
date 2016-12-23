@@ -46,7 +46,7 @@ chrome.webRequest.onBeforeRequest.addListener(
 
         urls: ["<all_urls>"], //你要拦截的url地址
 
-        types: ["script"] //拦截类型为script，
+        types: ["script", "stylesheet", "image", "main_frame", "sub_frame"] //拦截类型为script，
 
     },
 
