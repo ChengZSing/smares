@@ -1,6 +1,8 @@
 var mapping = chrome.extension.getBackgroundPage().getMapping();
 var packageMap = mapping.packageMap;
 var fileMap = mapping.fileMap;
+var selectedLI = null;
+var removeBtn = null;
 
 var container = document.getElementsByClassName('url_response_container')[0];
 var ul = container.getElementsByTagName('ul')[0];
@@ -24,7 +26,9 @@ input_arr[1].addEventListener('change', function(event) {
 	localStorage.setItem(KEY_INPUT_1, input_arr[1].value);
 })
 
-// input_arr[1]
+document.body.addEventListener('click', function(event) {
+    removeSelectedSpans();
+});
 
 var btn = document.getElementById('save');
 btn.addEventListener('click', function(event) {
@@ -84,8 +88,77 @@ clearBtn.addEventListener('click', function(event) {
 
 function createLiElement(originUrl, targetUrl) {
     var li = document.createElement('li');
-    li.innerHTML = '<div><span>' + originUrl + '</span><span>' + targetUrl + '</span></div>'
+    li.innerHTML = '<div><span>' + originUrl + '</span><span>' + targetUrl + '</span></div>';
+    li.addEventListener('click', onLIClick);
     return li;
+}
+
+function onLIClick(event) {
+    event.stopPropagation();
+
+    var liEl = event.currentTarget;
+    
+    if(liEl.tagName.toUpperCase() != 'LI' || 
+        selectedLI === liEl){
+        return;
+    }
+    removeSelectedSpans();
+
+    var spans = liEl.querySelectorAll('span');
+    var forEach = Array.prototype.forEach;
+    forEach.call(spans, function(spanEl){
+        spanEl.className = 'selected';
+    });
+    
+    removeBtn = document.createElement('div');
+    removeBtn.innerText = 'Delete';
+    removeBtn.style.cssText = 'border-radius:6px; border:solid 1px #eee; background-color:red; color:white;' + 
+        'width:45px; height:16px; position:absolute; text-align:center; cursor:pointer;' + 
+        'left:' + event.pageX + 'px; top:' + event.pageY + 'px';
+    document.body.appendChild(removeBtn);
+    removeBtn.addEventListener('click', removeItem);
+
+    selectedLI = liEl;
+}
+
+function removeSelectedSpans() {
+    if(!selectedLI || !removeBtn) {
+        return;
+    }
+    var selectedSpans = selectedLI.querySelectorAll('span');
+    var forEach = Array.prototype.forEach;
+    forEach.call(selectedSpans, function(spanEl){
+        spanEl.removeAttribute('class');
+    });
+
+    removeBtn.parentNode.removeChild(removeBtn);
+    removeBtn.removeEventListener('click', removeItem);
+
+    selectedLI = null;
+    removeBtn = null;
+}
+
+function removeItem(event) {
+    event.stopPropagation();
+
+    var deleteKey = selectedLI.querySelector('span').innerText;
+    selectedLI.parentNode.removeChild(selectedLI);
+    removeSelectedSpans();
+    //packageMap,fileMap
+    for(var key in packageMap) {
+        if(key == deleteKey) {
+            delete packageMap[deleteKey];
+            chrome.extension.getBackgroundPage().removeMapping(deleteKey, true);
+            return;
+        }
+    }
+    for(var key in fileMap) {
+        if(key == deleteKey) {
+            delete fileMap[deleteKey];
+            chrome.extension.getBackgroundPage().removeMapping(deleteKey, false);
+            return;
+        }
+    }
 }
 
 // no use, test code

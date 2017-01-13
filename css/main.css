@@ -10,6 +10,7 @@ body { max-width:600px; }
 .url_response_container ul li span {display:inline-block; white-space: nowrap; overflow: hidden; width:279px; border-bottom: solid 1px #eee; text-overflow: ellipsis;}
 .url_response_container ul li span:first-child {border-right: solid 2px #eee; }
 .url_response_container ul li span:nth-child(2) {width: calc(100% - 281px);}
+.url_response_container ul li span.selected {color:#666; background-color:lightcyan;}
 .input_area {float: left; height:50px; margin-left:6px;}
 .text {width:420px;}
 .btn {width:140px; position: relative;}

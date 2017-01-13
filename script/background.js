@@ -71,7 +71,21 @@ function setMapping(originUrl, targetUrl, isPackage) {
 		key = KEY_FILE_MAP;
 	}
     map[originUrl] = targetUrl;
-    localStorage.setItem(key, JSON.stringify(map))
+    localStorage.setItem(key, JSON.stringify(map));
+}
+
+function removeMapping(deleteKey, isPackage) {
+    var map, key;
+	if(isPackage) {
+		map = packageMap;
+		key = KEY_PACK_MAP;
+	} else {
+		map = fileMap;
+		key = KEY_FILE_MAP;
+	}
+    delete map[deleteKey];
+    
+    localStorage.setItem(key, JSON.stringify(map));
 }
 
 function clearLocalStorage() {
