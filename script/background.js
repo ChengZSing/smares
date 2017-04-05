@@ -25,7 +25,8 @@ chrome.webRequest.onBeforeRequest.addListener(
         // }
 
         for (var key in fileMap) {
-            if (key == details.url) {
+            var reg = new RegExp('^' + key, 'g');
+            if (reg.test(details.url)) {
                 if (chrome.extension.getViews()[1]) {
                     chrome.extension.getViews()[1].output('file matched! originUrl:' + key + ' ,targetUrl:' + fileMap[key]);
                 }
